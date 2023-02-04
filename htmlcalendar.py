@@ -30,8 +30,6 @@ def htmlday(date, classes, links):
     result.append(str(date.day))
     if l:
         result.append("</a>")
-    if cs:
-        result.append("</span>")
     result.append("</td>")
     return "".join(result)
 
