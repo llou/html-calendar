@@ -41,8 +41,8 @@ def html_week_days(caltype):
     result.append("</tr>\n")
     return "".join(result)
 
-def htmlmonth(month, year, classes, links, nomonth, th_classes, table_classes, 
-        caltype):
+def htmlmonth(month, year, classes=nolist, links=nostr, nomonth=nolist, th_classes=[], 
+        table_classes=[], caltype=0):
     result = []
     week_count = 0
     result.append(f"<h2>{calendar.month_name[month]}</h2>")

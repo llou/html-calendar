@@ -1,10 +1,13 @@
 import importlib
+import random
 from datetime import date
+import calendar
 import unittest
 from html.parser import HTMLParser
 from htmlcalendar import (htmlcalendar, htmlday, htmlmonth, get_months, nolist,
         nostr)
 
+VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2", "p"]
 
 class CalParser(HTMLParser):
     def __init__(self):
@@ -21,13 +24,49 @@ class CalParser(HTMLParser):
         self.result.append(["data", data])
 
 
+class HTMLSError(Exception):
+    pass
+
+
+def html_sanity_checker(html_text):
+    parser = CalParser()
+    parser.feed(html_text)
+    tags = {}
+    for item in parser.result:
+        if item[0] == "starttag":
+            if not item[1] in VALID_HTML_TAGS:
+                raise HTMLSError(f"Invalid tag '{item[1]}'")
+            if item[1] in tags:
+                tags[item[1]] += 1
+            else:
+                tags[item[1]] = 1
+        if item[0] == "endtag":
+            if item[1] in tags:
+                tags[item[1]] -= 1
+            else:
+                raise HTMLSError(f"Invalid end tag {item[1]}")
+    for tag, count in tags.items():
+        if count != 0:
+            raise HTMLSError(f"Tag {tag} counts {count}")
+
+
+class SanityCheckerTestCase(unittest.TestCase):
+    def assertSanityError(self, html):
+        self.assertRaises(HTMLSError, html_sanity_checker, html)
+
+    def test(self):
+        self.assertSanityError('<a href="link">text')
+        self.assertSanityError('<dog href="link">text</dog>')
+        self.assertSanityError('<table><tr><th>a</th><th>b<th></tr><td>1</td><td>2</td></tr></table>')
+
+        
 class DayTestCase(unittest.TestCase):
     day = date(2023, 5, 8)
-    parser = CalParser
+    parser_class = CalParser
     url = "https://nowhere"
 
     def setUp(self):
-        self.parser = self.parser()
+        self.parser = self.parser_class()
 
     def assertClassesInTag(self, attrs, classes):
         attrs = dict(attrs)
@@ -94,6 +133,106 @@ class DayTestCase(unittest.TestCase):
         self.assertEqual(item[0], "endtag")
         self.assertEqual(item[1], "td")
 
+
+class MonthTestCase(unittest.TestCase):
+    year = 2012
+    month = 5
+    no_month_class = ["nomonth"]
+    th_classes = ["header"]
+    table_classes = ["table"]
+    caltype = 0
+    parser_class = CalParser
+
+
+    def classFunction(self, date):
+        return []
+
+    def linkFunction(self, date):
+        return ""
+
+    def setUp(self):
+        self.calendar = calendar.Calendar(self.type)
+        self.date_iterator = self.calendar.itermonthdates(self.year, self.month)
+        self.html = htmlmonth(self.month, self.year, 
+            classes=self.classFunction,
+            links=self.linkFunction,
+            th_classes=self.th_classes,
+            table_classes=self.table_classes,
+            caltype=self.caltype)
+        self.parser = parser_class()
+        self.parser.feed(self.html)
+        self.data = self.parser.result
+
+    def header_iterator(self):
+        header = False
+        attrs = {}
+        th = False
+        for item in self.data:
+            if item[0] == "endtag" and item[1] == "tr":
+                break
+            if item[0] == "startag" and item[1] == "th":
+                th = True
+                attrs = item[2]
+            if item[0] == "data" and th:
+                yield item[1], attrs
+            if item[0] == "endtag" and item[1] == "th":
+                th = False
+                attrs = {}
+
+    def body_iterator(self):
+        header = True
+        attrs = {}
+        href = ""
+        td = False
+        for item in self.data:
+            if item[0] == "endtag" and item[1] == "tr":
+                header == False
+            if header:
+                continue
+            if item[0] == "startag" and item[1] == "td":
+                td = True
+                attrs = item[2]
+            if item[0] == "startag" and item[1] == "a" and "href" in item[2]:
+                href = item[2]["href"]
+            if item[0] == "data" and td:
+                yield item[1], attrs, href
+            if item[0] == "endtag" and item[1] == "a":
+                href = ""
+            if item[0] == "endtag" and item[1] == "tr":
+                td = False
+                attrs = {}
+
+
+
+
+
+                
+                
+
+
+
+
+
+        
+
+    def day_iterator(self):
+        row = -1
+        row_item = -1
+        item = -1
+        header = True
+        link = ""
+        for item in self.data:
+            if item[0]
+
+
+
+
+
+    def test_sanity(self):
+        html_sanity_checker(self.html)
+
+
+       
 
 if __name__ == "__main__":
     unittest.main()
