@@ -158,53 +158,67 @@ class MonthTestCase(unittest.TestCase):
             links=self.linkFunction,
             th_classes=self.th_classes,
             table_classes=self.table_classes,
+            nomonth=lambda x:self.no_month_classes,
             caltype=self.caltype)
         self.parser = self.parser_class()
         self.parser.feed(self.html)
         self.data = self.parser.result
 
+    def get_table_attrs(self):
+        for item in self.data:
+            if item[0] == "starttag" and item[1] == "table":
+                return item[2]
+        raise Exception("No <table> tag found")
+
     def header_iterator(self):
         header = False
-        attrs = {}
+        attrs = []
         th = False
         for item in self.data:
             if item[0] == "endtag" and item[1] == "tr":
                 break
-            if item[0] == "startag" and item[1] == "th":
+            if item[0] == "starttag" and item[1] == "th":
                 th = True
                 attrs = item[2]
             if item[0] == "data" and th:
                 yield item[1], attrs
             if item[0] == "endtag" and item[1] == "th":
                 th = False
-                attrs = {}
+                attrs = []
 
-    def table_iterator(self):
+    def cell_iterator(self):
         header = True
-        attrs = {}
+        attrs = []
         href = ""
         td = False
+        a = False
         for item in self.data:
+            if item[1] == '\xa0': # In case of fill row days
+                break
             if item[0] == "endtag" and item[1] == "tr":
-                header == False
+                header = False
             if header:
                 continue
-            if item[0] == "startag" and item[1] == "td":
+            if item[0] == "starttag" and item[1] == "tr":
+                pass
+            elif item[0] == "starttag" and item[1] == "td":
                 td = True
                 attrs = item[2]
-            if item[0] == "startag" and item[1] == "a" and "href" in item[2]:
-                href = item[2]["href"]
-            if item[0] == "data" and td:
+            elif item[0] == "starttag" and item[1] == "a" and "href" in dict(item[2]):
+                href = dict(item[2])["href"]
+            elif item[0] == "data" and td:
                 yield item[1], attrs, href
-            if item[0] == "endtag" and item[1] == "a":
+            elif item[0] == "endtag" and item[1] == "a":
                 href = ""
-            if item[0] == "endtag" and item[1] == "tr":
+            elif item[0] == "endtag" and item[1] == "td":
                 td = False
-                attrs = {}
+                attrs = []
+            elif item[0] == "endtag" and item[1] == "tr":
+                pass
 
     def iter_month_days(self):
         in_month = False
-        for x in self.table_iterator():
+        for x in self.cell_iterator():
             if x[0] == '1':
                 in_month = not in_month
             if in_month:
@@ -212,27 +226,44 @@ class MonthTestCase(unittest.TestCase):
 
     def iter_no_month_days(self):
         in_month = False
-        for x in self.table_iterator():
-            if x[0] == '1':
+        for x in self.cell_iterator():
+            if x[0] == '1': 
                 in_month = not in_month
             if not in_month:
                 yield x
 
-    @staticmethod
-    def day_to_date(day):
-        return date(self.year, self.month, day)
+    def iter_rows(self):
+        row = None
+        td = False
+        for item in self.data:
+            if item[0] == 'starttag' and item[1] == "tr":
+                row = []
+            if item[0] == 'starttag' and item[1] == "td":
+                td = True
+            if item[0] == 'data' and td:
+                row.append(item[1])
+            if item[0] == 'endtag' and item[1] == "td":
+                td = False
+            if item[0] == 'endtag' and item[1] == "tr":
+                yield row
+                row = []
+
+    def day_to_date(self, day):
+        return date(self.year, self.month, int(day))
 
     def assertClasses(self, attrs, classes):
-        self.assertTrue('class' in attrs)
-        attrs_classes = set(attrs['class'].split(" "))
-        self.assertEqual(attrs_classes, set(classes))
+        if classes:
+            attrs_dict = dict(attrs)
+            self.assertIn('class', attrs_dict)
+            attrs_classes = set(attrs_dict['class'].split(" "))
+            self.assertEqual(attrs_classes, set(classes))
 
     def test_sanity(self):
         html_sanity_checker(self.html)
 
     def test_table(self):
-        # TODO Check table classes
-        pass
+        attrs = self.get_table_attrs()
+        self.assertClasses(attrs, self.table_classes)
 
     def test_header(self):
         names = [ x[0] for x in self.header_iterator() ]
@@ -241,10 +272,10 @@ class MonthTestCase(unittest.TestCase):
             self.assertEqual(name1, name2)
 
     def test_table_days(self):
-        day_numbers = [ x[0] for x in self.table_iterator() ]
-        dates = [ x for x in self.table_iterator() ]
+        day_numbers = [ x[0] for x in self.cell_iterator() ]
+        dates = [ x for x in self.date_iterator ]
         for day, date in zip(day_numbers, dates):
-            self.assertEqual(day, date.day)
+            self.assertEqual(int(day), date.day)
 
     def test_no_month_days(self):
         for d, attrs, href in self.iter_no_month_days():
@@ -254,10 +285,20 @@ class MonthTestCase(unittest.TestCase):
         for day, attrs, href in self.iter_month_days():
             date = self.day_to_date(day)
             classes = self.classFunction(date)
+            if classes:
+                self.assertClasses(attrs, self.no_month_classes)
             link = self.linkFunction(date)
-            self.assertClasses(attrs, self.no_month_classes)
-            self.assertEqual(link, href)
-       
+            if link:
+                self.assertEqual(link, href)
+
+    def test_fill_row_days(self):
+        dates = list(self.date_iterator)
+        if len(dates) <= 7 * 5:
+            rows = list(self.iter_rows())
+            last_row = rows[-1]
+            for empty in last_row:
+                self.assertEqual(empty, '\xa0')
+
 
 if __name__ == "__main__":
     unittest.main()
