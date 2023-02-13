@@ -1,37 +1,45 @@
 #
-#  html-calendar  
+#  html-calendar
 #  =============
 #
-#  A simple HTML calendar generator with callbacks for adding links to dates and
-#  formating classes. 
+#  A simple HTML calendar generator with callbacks for adding links to date
+#  and formating classes
 #
 # (c) 2023 Jorge Monforte Gonzalez
 #
 
 import calendar
 
-nolist = lambda x:[]
-nostr = lambda x:""
+
+def nolist(date):
+    return []
+
+
+def nostr(date):
+    return ""
+
 
 WEEKDAYS0 = ("mo", "tu", "we", "th", "fr", "sa", "su")
 WEEKDAYS1 = ("su", "mo", "tu", "we", "th", "fr", "sa")
-EMPTY_ROW = "<tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>"
+EMPTY_ROW = "<tr>" + 7 * "<td>&nbsp;</td>" + "</tr>"
+
 
 def htmlday(date, classes, links):
     result = []
     cs = classes(date)
-    l = links(date)
+    ls = links(date)
     if cs:
         result.append(f'<td class="{" ".join(cs)}">')
     else:
         result.append("<td>")
-    if l:
-        result.append(f'<a href="{l}">')
+    if ls:
+        result.append(f'<a href="{ls}">')
     result.append(str(date.day))
-    if l:
+    if ls:
         result.append("</a>")
     result.append("</td>")
     return "".join(result)
+
 
 def html_week_days(caltype):
     result = ["<tr>"]
@@ -41,8 +49,9 @@ def html_week_days(caltype):
     result.append("</tr>\n")
     return "".join(result)
 
-def htmlmonth(month, year, classes=nolist, links=nostr, nomonth=nolist, th_classes=[], 
-        table_classes=[], caltype=0):
+
+def htmlmonth(month, year, classes=nolist, links=nostr, nomonth=nolist,
+              th_classes=[], table_classes=[], caltype=0):
     result = []
     week_count = 0
     result.append(f"<h2>{calendar.month_name[month]}</h2>")
@@ -68,26 +77,44 @@ def htmlmonth(month, year, classes=nolist, links=nostr, nomonth=nolist, th_class
     result.append("</table>\n\n")
     return "".join([str(x) for x in result])
 
-def get_months(starting, months):
+
+def backwards_iterator(starting, months):
     month = starting.month
-    year = starting.year 
-    result = [(starting.month, starting.year)]
+    year = starting.year
+    yield (starting.month, starting.year)
     for i in range(0, months):
         if month == 1:
             year -= 1
             month = 12
         else:
-            month -=1
-        result.append((month, year))
-    return result
+            month -= 1
+        yield (month, year)
 
-def htmlcalendar(starting, months=3, classes=nolist, links=nostr, 
-        no_month_class='nomonth', th_classes=[], table_classes=[],
-        caltype=0):
+
+def forward_iterator(starting, months):
+    month = starting.month
+    year = starting.year
+    yield (starting.month, starting.year)
+    for i in range(0, months):
+        if month == 1:
+            year -= 1
+            month = 12
+        else:
+            month -= 1
+        yield (month, year)
+
+
+def htmlcalendar(starting, months=3, classes=nolist, links=nostr,
+                 no_month_class='nomonth', th_classes=[], table_classes=[],
+                 caltype=0, backwards=True):
     result = []
-    nomonth = lambda x: [no_month_class]
-    for month, year in get_months(starting, months):
-        result.append(htmlmonth(month, year, classes, links, nomonth, 
-            th_classes, table_classes, caltype))
-    return [str(x) for x in reversed(result[0:months])]
 
+    def nomonth(x):
+        return [no_month_class]
+
+    iterator = backwards_iterator if backwards else forward_iterator
+
+    for month, year in iterator(starting, months):
+        result.append(htmlmonth(month, year, classes, links, nomonth,
+                      th_classes, table_classes, caltype))
+    return [str(x) for x in reversed(result[0:months])]

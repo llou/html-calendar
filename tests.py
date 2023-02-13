@@ -1,13 +1,16 @@
-import importlib
-import random
 from datetime import date
 import calendar
 import unittest
 from html.parser import HTMLParser
-from htmlcalendar import (htmlcalendar, htmlday, htmlmonth, get_months, nolist,
-        nostr, WEEKDAYS0, WEEKDAYS1)
+from htmlcalendar import (htmlcalendar, htmlday, htmlmonth, forward_iterator,
+                          backwards_iterator, nolist, nostr, WEEKDAYS0)
 
 VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2"]
+
+
+def is_link(attrs):
+    return "href" in dict(attrs)
+
 
 class CalParser(HTMLParser):
     def __init__(self):
@@ -57,9 +60,10 @@ class SanityCheckerTestCase(unittest.TestCase):
     def test(self):
         self.assertSanityError('<a href="link">text')
         self.assertSanityError('<dog href="link">text</dog>')
-        self.assertSanityError('<table><tr><th>a</th><th>b<th></tr><td>1</td><td>2</td></tr></table>')
+        self.assertSanityError('<table><tr><th>a</th><th>b<th></tr><td>1</td>'
+                               '<td>2</td></tr></table>')
 
-        
+
 class DayTestCase(unittest.TestCase):
     day = date(2023, 5, 8)
     parser_class = CalParser
@@ -99,13 +103,13 @@ class DayTestCase(unittest.TestCase):
         self.assertEqual(item[1], "td")
 
     def test_class(self):
-        callback = lambda x: ["classy", "beautiful"]
+        def callback(x):
+            return ["classy", "beautiful"]
         feed = self.parse_day(self.day, callback, nostr)
         item = feed[0]
         self.assertEqual(item[0], "starttag")
         self.assertEqual(item[1], "td")
         self.assertClassesInTag(item[2], ["classy", "beautiful"])
-        classes = item[2]
         item = feed[1]
         self.assertEqual(item[0], "data")
         self.assertEqual(item[1], str(self.day.day))
@@ -114,7 +118,8 @@ class DayTestCase(unittest.TestCase):
         self.assertEqual(item[1], "td")
 
     def test_link_day(self):
-        callback = lambda x: self.url 
+        def callback(x):
+            return self.url
         feed = self.parse_day(self.day, nolist, callback)
         item = feed[0]
         self.assertEqual(item[0], "starttag")
@@ -143,7 +148,6 @@ class MonthTestCase(unittest.TestCase):
     caltype = 0
     parser_class = CalParser
 
-
     def classFunction(self, date):
         return []
 
@@ -152,14 +156,15 @@ class MonthTestCase(unittest.TestCase):
 
     def setUp(self):
         self.calendar = calendar.Calendar(self.caltype)
-        self.date_iterator = self.calendar.itermonthdates(self.year, self.month)
-        self.html = htmlmonth(self.month, self.year, 
-            classes=self.classFunction,
-            links=self.linkFunction,
-            th_classes=self.th_classes,
-            table_classes=self.table_classes,
-            nomonth=lambda x:self.no_month_classes,
-            caltype=self.caltype)
+        self.date_iterator = self.calendar.itermonthdates(self.year,
+                                                          self.month)
+        self.html = htmlmonth(self.month, self.year,
+                              classes=self.classFunction,
+                              links=self.linkFunction,
+                              th_classes=self.th_classes,
+                              table_classes=self.table_classes,
+                              nomonth=lambda x: self.no_month_classes,
+                              caltype=self.caltype)
         self.parser = self.parser_class()
         self.parser.feed(self.html)
         self.data = self.parser.result
@@ -171,7 +176,6 @@ class MonthTestCase(unittest.TestCase):
         raise Exception("No <table> tag found")
 
     def header_iterator(self):
-        header = False
         attrs = []
         th = False
         for item in self.data:
@@ -191,9 +195,8 @@ class MonthTestCase(unittest.TestCase):
         attrs = []
         href = ""
         td = False
-        a = False
         for item in self.data:
-            if item[1] == '\xa0': # In case of fill row days
+            if item[1] == '\xa0':  # In case of fill row days
                 break
             if item[0] == "endtag" and item[1] == "tr":
                 header = False
@@ -204,7 +207,7 @@ class MonthTestCase(unittest.TestCase):
             elif item[0] == "starttag" and item[1] == "td":
                 td = True
                 attrs = item[2]
-            elif item[0] == "starttag" and item[1] == "a" and "href" in dict(item[2]):
+            elif item[0] == "starttag" and item[1] == "a" and is_link(item[2]):
                 href = dict(item[2])["href"]
             elif item[0] == "data" and td:
                 yield item[1], attrs, href
@@ -227,7 +230,7 @@ class MonthTestCase(unittest.TestCase):
     def iter_no_month_days(self):
         in_month = False
         for x in self.cell_iterator():
-            if x[0] == '1': 
+            if x[0] == '1':
                 in_month = not in_month
             if not in_month:
                 yield x
@@ -266,16 +269,16 @@ class MonthTestCase(unittest.TestCase):
         self.assertClasses(attrs, self.table_classes)
 
     def test_header(self):
-        names = [ x[0] for x in self.header_iterator() ]
-        week_days = WEEKDAYS0 if self.caltype == 0 else WEEKDAYS1
+        names = [x[0] for x in self.header_iterator()]
+        # week_days = WEEKDAYS0 if self.caltype == 0 else WEEKDAYS1
         for name1, name2 in zip(names, WEEKDAYS0):
             self.assertEqual(name1, name2)
 
     def test_table_days(self):
-        day_numbers = [ x[0] for x in self.cell_iterator() ]
-        dates = [ x for x in self.date_iterator ]
-        for day, date in zip(day_numbers, dates):
-            self.assertEqual(int(day), date.day)
+        day_numbers = [x[0] for x in self.cell_iterator()]
+        dates = [x for x in self.date_iterator]
+        for day, date_ in zip(day_numbers, dates):
+            self.assertEqual(int(day), date_.day)
 
     def test_no_month_days(self):
         for d, attrs, href in self.iter_no_month_days():
@@ -300,6 +303,17 @@ class MonthTestCase(unittest.TestCase):
                 self.assertEqual(empty, '\xa0')
 
 
+class BackwardsTestCase(unittest.TestCase):
+    iterator = backwards_iterator
+
+
+class ForwardTestCase(unittest.TestCase):
+    iterator = forward_iterator
+
+
+class HtmlCalendarTestCase(unittest.TestCase):
+    calendar_generator = htmlcalendar
+
+
 if __name__ == "__main__":
     unittest.main()
-
