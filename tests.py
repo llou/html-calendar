@@ -3,7 +3,8 @@ import calendar
 import unittest
 from html.parser import HTMLParser
 from htmlcalendar import (htmlcalendar, htmlday, htmlmonth, forward_iterator,
-                          backwards_iterator, nolist, nostr, WEEKDAYS0)
+                          backwards_iterator, nolist, nostr, WEEKDAYS0,
+                          WEEKDAYS1)
 
 VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2"]
 
@@ -270,8 +271,8 @@ class MonthTestCase(unittest.TestCase):
 
     def test_header(self):
         names = [x[0] for x in self.header_iterator()]
-        # week_days = WEEKDAYS0 if self.caltype == 0 else WEEKDAYS1
-        for name1, name2 in zip(names, WEEKDAYS0):
+        week_days = WEEKDAYS0 if self.caltype == 0 else WEEKDAYS1
+        for name1, name2 in zip(names, week_days):
             self.assertEqual(name1, name2)
 
     def test_table_days(self):
@@ -289,7 +290,7 @@ class MonthTestCase(unittest.TestCase):
             date = self.day_to_date(day)
             classes = self.classFunction(date)
             if classes:
-                self.assertClasses(attrs, self.no_month_classes)
+                self.assertClasses(attrs, classes)
             link = self.linkFunction(date)
             if link:
                 self.assertEqual(link, href)
@@ -301,6 +302,22 @@ class MonthTestCase(unittest.TestCase):
             last_row = rows[-1]
             for empty in last_row:
                 self.assertEqual(empty, '\xa0')
+
+
+class MonthTestCase2(MonthTestCase):
+    year = 2023
+    month = 9
+    no_month_classes = ["themonth"]
+    th_classes = ["title"]
+    table_classes = ["tabla"]
+    caltype = 1
+
+    def classFunction(self, date):
+        day = date.day
+        return ['odd'] if day % 2 else ['even']
+
+    def linkFunction(self, date):
+        return f"https://lets-party.fake/{date.year}/{date.month}/{date.day}"
 
 
 class BackwardsTestCase(unittest.TestCase):
