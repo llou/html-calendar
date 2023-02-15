@@ -320,6 +320,21 @@ class MonthTestCase2(MonthTestCase):
         return f"https://lets-party.fake/{date.year}/{date.month}/{date.day}"
 
 
+class MonthTestCase3(MonthTestCase):
+    year = 2035
+    month = 12
+    no_month_classes = ["themonth"]
+    th_classes = ["title"]
+    table_classes = ["tabla"]
+    caltype = 1
+
+    def classFunction(self, date):
+        return [str(date.weekday())]
+
+    def linkFunction(self, date):
+        return f"https://helo.fake"
+
+
 class BackwardsTestCase(unittest.TestCase):
     iterator = backwards_iterator
 
