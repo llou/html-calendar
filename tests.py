@@ -335,12 +335,49 @@ class MonthTestCase3(MonthTestCase):
         return f"https://helo.fake"
 
 
-class BackwardsTestCase(unittest.TestCase):
-    iterator = backwards_iterator
+class MonthsIterator(unittest.TestCase):
+    sequence = []
+    iterator_function = (backwards_iterator,)
+    starting = date(2023, 1, 1)
+    months = 3
+
+    def setUp(self):
+        self.iterator = self.iterator_function[0](self.starting, self.months)
+
+    def test_values(self):
+        for x, y in zip(self.sequence, self.iterator):
+            self.assertEqual(x, y)
 
 
-class ForwardTestCase(unittest.TestCase):
-    iterator = forward_iterator
+class BackWard1TestCase(MonthsIterator):
+    starting = date(2039, 1, 1)
+    months = 3
+    sequence = [
+                (1, 2039),
+                (12, 2038),
+                (11, 2038),
+                ]
+
+
+class BackWard1TestCase(MonthsIterator):
+    starting = date(2045, 6, 13)
+    months = 3
+    sequence = [
+                (6, 2045),
+                (5, 2045),
+                (4, 2045),
+                (3, 2045),
+                (2, 2045),
+                (1, 2045),
+                (12, 2044),
+                (11, 2044),
+                (10, 2044),
+                (9, 2044),
+                (8, 2044),
+                (7, 2044),
+                (6, 2044),
+                (5, 2044),
+                ]
 
 
 class HtmlCalendarTestCase(unittest.TestCase):
