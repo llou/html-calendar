@@ -1,6 +1,8 @@
 from datetime import date
 import calendar
 import unittest
+from unittest.mock import patch, Mock, call
+from typing import Tuple, List
 from html.parser import HTMLParser
 from htmlcalendar import (htmlcalendar, htmlday, htmlmonth, forward_iterator,
                           backwards_iterator, nolist, nostr, WEEKDAYS0,
@@ -336,7 +338,7 @@ class MonthTestCase3(MonthTestCase):
 
 
 class MonthsIterator(unittest.TestCase):
-    sequence = []
+    sequence: List[Tuple[int, int]] = []
     iterator_function = (backwards_iterator,)
     starting = date(2023, 1, 1)
     months = 3
@@ -349,7 +351,7 @@ class MonthsIterator(unittest.TestCase):
             self.assertEqual(x, y)
 
 
-class BackWard1TestCase(MonthsIterator):
+class Backward1TestCase(MonthsIterator):
     starting = date(2039, 1, 1)
     months = 3
     sequence = [
@@ -359,7 +361,7 @@ class BackWard1TestCase(MonthsIterator):
                 ]
 
 
-class BackWard1TestCase(MonthsIterator):
+class Backward2TestCase(MonthsIterator):
     starting = date(2045, 6, 13)
     months = 3
     sequence = [
@@ -380,8 +382,82 @@ class BackWard1TestCase(MonthsIterator):
                 ]
 
 
+class Forward1TestCase(MonthsIterator):
+    iterator_function = (forward_iterator,)
+    starting = date(2023, 2, 1)
+    months = 3
+    sequence = [
+            (2, 2023),
+            (3, 2023),
+            (4, 2023),
+            ]
+
+
+class Forward2TestCase(MonthsIterator):
+    iterator_function = (forward_iterator,)
+    starting = date(2011, 6, 12)
+    months = 8
+    sequence = [
+            (6, 2011),
+            (7, 2011),
+            (8, 2011),
+            (9, 2011),
+            (10, 2011),
+            (11, 2011),
+            (12, 2011),
+            (1, 2012),
+            (2, 2012),
+            ]
+
+
 class HtmlCalendarTestCase(unittest.TestCase):
-    calendar_generator = htmlcalendar
+    starting_date = date(2025, 9, 1)
+    months = 5
+    backwards = True
+    caltype = 0
+    th_classes = ['thclass']
+    table_classes = ['tableclass']
+
+    def setUp(self):
+        self.classes = Mock()
+        self.links = Mock()
+        self.nomonth = Mock()
+        self.th_classes = Mock()
+        self.table_classes = Mock()
+
+    @patch('htmlcalendar.htmlmonth')
+    @patch('htmlcalendar.no_month_factory')
+    def test_months(self, no_month_factory, month_mock):
+        result = htmlcalendar(self.starting_date,
+                              months=self.months,
+                              classes=self.classes,
+                              links=self.links,
+                              no_month_class=self.nomonth,
+                              th_classes=self.th_classes,
+                              table_classes=self.table_classes,
+                              caltype=self.caltype,
+                              backwards=True)
+
+        # Sanity call check
+        for item in result:
+            html_sanity_checker(item)
+
+        # Test callback
+        no_month_factory.assert_called_once_with(self.nomonth)
+        nomonth = no_month_factory()
+
+        # Basic htmlmonths calls
+        self.assertTrue(month_mock.called)
+        self.assertEqual(month_mock.call_count, self.months)
+
+        # Redundant htmlmonth calls checker
+        iterator = backwards_iterator if self.backwards else forward_iterator
+        calls = []
+        for month, year in iterator(self.starting_date, self.months):
+            c = call(month, year, self.classes, self.links, nomonth,
+                     self.th_classes, self.table_classes, self.caltype)
+            calls.append(c)
+        month_mock.mock_calls == reversed(calls)
 
 
 if __name__ == "__main__":

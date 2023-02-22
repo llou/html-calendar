@@ -19,6 +19,11 @@ def nostr(date):
     return ""
 
 
+def no_month_factory(no_month_class):
+    def no_month(date):
+        return [no_month_class]
+
+
 WEEKDAYS0 = ("mo", "tu", "we", "th", "fr", "sa", "su")
 WEEKDAYS1 = ("su", "mo", "tu", "we", "th", "fr", "sa")
 EMPTY_ROW = "<tr>" + 7 * "<td>&nbsp;</td>" + "</tr>"
@@ -96,25 +101,30 @@ def forward_iterator(starting, months):
     year = starting.year
     yield (starting.month, starting.year)
     for i in range(0, months):
-        if month == 1:
-            year -= 1
-            month = 12
+        if month == 12:
+            year += 1
+            month = 1
         else:
-            month -= 1
+            month += 1
         yield (month, year)
 
 
-def htmlcalendar(starting, months=3, classes=nolist, links=nostr,
-                 no_month_class='nomonth', th_classes=[], table_classes=[],
-                 caltype=0, backwards=True):
-    result = []
+def htmlcalendar(starting_date,
+                 months=3,
+                 classes=nolist,
+                 links=nostr,
+                 no_month_class='nomonth',
+                 th_classes=[],
+                 table_classes=[],
+                 caltype=0,
+                 backwards=True):
 
-    def nomonth(x):
-        return [no_month_class]
+    nomonth = no_month_factory(no_month_class)
 
     iterator = backwards_iterator if backwards else forward_iterator
 
-    for month, year in iterator(starting, months):
+    result = []
+    for month, year in iterator(starting_date, months - 1):
         result.append(htmlmonth(month, year, classes, links, nomonth,
                       th_classes, table_classes, caltype))
-    return [str(x) for x in reversed(result[0:months])]
+    return reversed(result)
