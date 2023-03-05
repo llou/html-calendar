@@ -410,7 +410,7 @@ class Forward2TestCase(MonthsIterator):
             ]
 
 
-class HtmlCalendarTestCase(unittest.TestCase):
+class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
     starting_date = date(2025, 9, 1)
     months = 5
     backwards = True
@@ -436,7 +436,7 @@ class HtmlCalendarTestCase(unittest.TestCase):
                               th_classes=self.th_classes,
                               table_classes=self.table_classes,
                               caltype=self.caltype,
-                              backwards=True)
+                              backwards=self.backwards)
 
         # Sanity call check
         for item in result:
@@ -453,11 +453,57 @@ class HtmlCalendarTestCase(unittest.TestCase):
         # Redundant htmlmonth calls checker
         iterator = backwards_iterator if self.backwards else forward_iterator
         calls = []
-        for month, year in iterator(self.starting_date, self.months):
+        for month, year in iterator(self.starting_date, self.months - 1):
             c = call(month, year, self.classes, self.links, nomonth,
                      self.th_classes, self.table_classes, self.caltype)
             calls.append(c)
-        month_mock.mock_calls == reversed(calls)
+        self.assertEqual(len(month_mock.call_args_list), len(calls))
+        self.assertListEqual(month_mock.call_args_list, calls)
+
+
+class WhiteBoxHtmlCalendar2TestCase(WhiteBoxHtmlCalendar1TestCase):
+    starting_date = date(2025, 9, 1)
+    months = 5
+    backwards = True
+    caltype = 0
+    th_classes = ['thclass']
+    table_classes = ['tableclass']
+
+
+class BlackBoxHtmlCalendarTestCase(unittest.TestCase):
+    starting_date = date(2025, 9, 1)
+    months = 5
+    backwards = True
+    caltype = 0
+    th_classes = ['thclass']
+    table_classes = ['tableclass']
+
+    def setUp(self):
+        self.classes = (lambda x: ["my_class"],)
+        self.links = (lambda x: "https://nowhere",)
+        self.nomonth = "no_month"
+        self.th_classes = self.th_classes
+        self.table_classes = self.table_classes
+        self.calendar = htmlcalendar(self.starting_date,
+                                     months=self.months,
+                                     classes=self.classes[0],
+                                     links=self.links[0],
+                                     no_month_class=self.nomonth,
+                                     th_classes=self.th_classes,
+                                     table_classes=self.table_classes,
+                                     caltype=self.caltype,
+                                     backwards=self.backwards)
+        self.calendar = "\n".join(self.calendar)
+
+    def test_black_box(self):
+        html_sanity_checker(self.calendar)
+        parser = CalParser()
+        parser.feed(self.calendar)
+        month_counter = 0
+        for item in parser.result:
+            if item[0] == 'starttag' and item[1] == 'h2':
+                month_counter += 1
+        self.assertEqual(month_counter, self.months)
 
 
 if __name__ == "__main__":
