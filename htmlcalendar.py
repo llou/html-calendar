@@ -22,6 +22,7 @@ def nostr(date):
 def no_month_factory(no_month_class):
     def no_month(date):
         return [no_month_class]
+    return no_month
 
 
 WEEKDAYS0 = ("mo", "tu", "we", "th", "fr", "sa", "su")
