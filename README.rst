@@ -20,4 +20,4 @@ and the table using the options ``th_classes`` and ``table_classes``.
 I also support North American calendar with the option ``caltype`` putting its
 value to 1.
 
-Localization of weekdays names is still pending.
+Localization of weekdays and month names is still pending.
