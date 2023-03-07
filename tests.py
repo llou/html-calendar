@@ -8,6 +8,7 @@ from htmlcalendar import (htmlcalendar, htmlday, htmlmonth, forward_iterator,
                           backwards_iterator, nolist, nostr, WEEKDAYS0,
                           WEEKDAYS1)
 
+
 VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2"]
 
 

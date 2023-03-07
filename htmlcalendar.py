@@ -27,7 +27,6 @@ def no_month_factory(no_month_class):
 
 WEEKDAYS0 = list(calendar.day_abbr)
 WEEKDAYS1 = [WEEKDAYS0[6]] + list(WEEKDAYS0[0:6])
-print(WEEKDAYS1)
 EMPTY_ROW = "<tr>" + 7 * "<td>&nbsp;</td>" + "</tr>"
 
 
