@@ -1,12 +1,14 @@
-#
-#  html-calendar
-#  =============
-#
-#  A simple HTML calendar generator with callbacks for adding links to date
-#  and formating classes
-#
-# (c) 2023 Jorge Monforte Gonzalez
-#
+"""
+  html-calendar
+  =============
+
+  A simple HTML calendar generator with callbacks for adding links to date
+  and formating classes
+
+ (c) 2023 Jorge Monforte Gonzalez
+"""
+
+__version__ = "0.0.1"
 
 import calendar
 
