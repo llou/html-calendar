@@ -38,7 +38,7 @@ its value to 1.
 
   def css_class(date):
 	  if date.weekday() == 5:
-		  return "party"
+		  return ["party"]
 
   @app.route("/")
   def hello_world():
