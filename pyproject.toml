@@ -15,7 +15,7 @@ classifiers = [
 ]
 
 [project.urls]
-Home = "https://www.llou.net"
+Home = "https://github.com/llou/html-calendar"
 
 [tool.flit.module]
 name  = "htmlcalendar"
