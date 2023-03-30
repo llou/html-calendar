@@ -8,7 +8,7 @@
  (c) 2023 Jorge Monforte Gonzalez
 """
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 import calendar
 
