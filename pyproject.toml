@@ -3,10 +3,13 @@ requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
 
 [project]
-name = "htmlcalendar"
+name = "html-calendar"
 authors = [{name = "Jorge Monforte Gonzalez", email = "yo@llou.net"}]
 readme = "README.rst"
 dynamic = ["version", "description"]
 
 [project.urls]
 Home = "https://www.llou.net"
+
+[tool.flit.module]
+name  = "htmlcalendar"
