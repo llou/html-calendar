@@ -41,5 +41,5 @@ its value to 1.
 		  return ["party"]
 
   @app.route("/")
-  def hello_world():
+  def party_calendar():
 	  return htmlcalendar(date.today(), months=1, links=links, classes=css_class)
