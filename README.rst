@@ -2,7 +2,7 @@
 HTML Calendar
 =============
 
-This module has the simple poupose of building html calendar tables with links
+This module has the simple purpose of building html calendar tables with links
 and formatting. It is totally framework agnostic.
 
 The module provides the ``htmlcalendar`` Python function that takes an starting
