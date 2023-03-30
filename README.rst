@@ -24,16 +24,22 @@ and the table using the options ``th_classes`` and ``table_classes``.
 It also supports North American calendar with the option ``caltype`` putting
 its value to 1.
 
-.. code-block::
+.. code-block:: python
 
-    from htmlcalendar import htmlcalendar
+  from flask import Flask
+  from datetime import date
+  from htmlcalendar import htmlcalendar
 
-    def link(date):
-        if date.weekday == 5:
-            return "https://lets-party.domain"
+  app = Flask("party")
 
-    def css_class(date):
-        if date.weekday == 5:
-            return "party"
+  def links(date):
+	  if date.weekday() == 5:
+		  return "https://github.com/llou/html-calendar"
 
-    html_table = htmlcalendar(links=link, classes=css_class)
+  def css_class(date):
+	  if date.weekday() == 5:
+		  return "party"
+
+  @app.route("/")
+  def hello_world():
+	  return htmlcalendar(date.today(), months=1, links=links, classes=css_class)
