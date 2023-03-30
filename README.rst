@@ -21,8 +21,8 @@ You can also format the days that are not in the month but appear in the table
 with the option ``no_month_class``. And the classes for formatting the headers
 and the table using the options ``th_classes`` and ``table_classes``.
 
-I also support North American calendar with the option ``caltype`` putting its
-value to 1.
+It also supports North American calendar with the option ``caltype`` putting
+its value to 1.
 
 .. code-block::
 
