@@ -7,6 +7,12 @@ name = "html-calendar"
 authors = [{name = "Jorge Monforte Gonzalez", email = "yo@llou.net"}]
 readme = "README.rst"
 dynamic = ["version", "description"]
+classifiers = [
+	"Development Status :: 3 - Alpha",
+	"Environment :: Web Environment",
+	"License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3"
+]
 
 [project.urls]
 Home = "https://www.llou.net"
