@@ -121,6 +121,38 @@ def htmlcalendar(starting_date,
                  table_classes=[],
                  caltype=0,
                  backwards=True):
+    """
+    Main function that takes a starting date and returns a list of
+    tables containing months calendars in tables.
+
+    All tables generated have 6 rows, even the last one is empty.
+
+    Parameters
+    ----------
+
+    starting_date: datetime.date
+        Any date object of the month we want to start generating from.
+    months: int
+        The number of months we want to generate
+    classes: function
+        A function that takes a datetime.date as parameter and returns
+        a list of strings that will be put as classes of the table cell
+    links: function
+        A function that takes a datetime.date as parameter and returns
+        a fully qualified URL that will be linked to the date number. If
+        the function returns none there is no link generated.
+    no_month_class: string
+        The name of a css class to be put in the cells of the table that
+        don't belongo to the month in course.
+    th_classes: list
+        A list of classes to be put in each one of the weekdays labels.
+    table_classes: list
+        A list of classes to be put in the main table object.
+    caltype: int
+        If you want weeks starting on sunday 1 else 0
+    backwards: bool
+        If you want to generate the calendars to the past True else False
+    """
 
     nomonth = no_month_factory(no_month_class)
 
