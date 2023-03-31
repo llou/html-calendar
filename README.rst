@@ -43,3 +43,5 @@ its value to 1.
   @app.route("/")
   def party_calendar():
 	  return htmlcalendar(date.today(), months=1, links=links, classes=css_class)
+
+You can read the documentation at https://html-calendar.readthedocs.io/en/latest/

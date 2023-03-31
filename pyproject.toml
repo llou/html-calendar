@@ -7,7 +7,6 @@ name = "html-calendar"
 authors = [{name = "Jorge Monforte Gonzalez", email = "yo@llou.net"}]
 readme = "README.rst"
 dynamic = ["version", "description"]
-documentation = "https://html-calendar.readthedocs.io/en/latest/"
 classifiers = [
 	"Development Status :: 3 - Alpha",
 	"Environment :: Web Environment",
@@ -17,6 +16,7 @@ classifiers = [
 
 [project.urls]
 Home = "https://github.com/llou/html-calendar"
+Documentation = "https://html-calendar.readthedocs.io/en/latest/"
 
 [tool.flit.module]
 name  = "htmlcalendar"
