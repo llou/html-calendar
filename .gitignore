@@ -6,6 +6,11 @@ __pycache__
 db.sqlite3
 media
 
+# Sphinx
+doc/_build/
+doc/_static/
+doc/_templates/
+
 # Backup files # 
 *.bak 
 
