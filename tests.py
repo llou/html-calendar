@@ -4,12 +4,17 @@ import unittest
 from unittest.mock import patch, Mock, call
 from typing import Tuple, List
 from html.parser import HTMLParser
-from htmlcalendar import (htmlcalendar, htmlday, htmlmonth, forward_iterator,
-                          backwards_iterator, nolist, nostr, WEEKDAYS0,
-                          WEEKDAYS1)
+from htmlcalendar import (htmlcalendar,
+                          htmlday,
+                          htmlmonth,
+                          forward_iterator,
+                          backwards_iterator,
+                          nolist,
+                          nostr)
+import htmlcalendar as hc
 
 
-VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2"]
+VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2", "h3", "h4"]
 
 
 def is_link(attrs):
@@ -274,7 +279,7 @@ class MonthTestCase(unittest.TestCase):
 
     def test_header(self):
         names = [x[0] for x in self.header_iterator()]
-        week_days = WEEKDAYS0 if self.caltype == 0 else WEEKDAYS1
+        week_days = hc.WEEKDAYS0 if self.caltype == 0 else hc.WEEKDAYS1
         for name1, name2 in zip(names, week_days):
             self.assertEqual(name1, name2)
 
@@ -335,7 +340,7 @@ class MonthTestCase3(MonthTestCase):
         return [str(date.weekday())]
 
     def linkFunction(self, date):
-        return f"https://helo.fake"
+        return "https://helo.fake"
 
 
 class MonthsIterator(unittest.TestCase):
@@ -418,6 +423,7 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
     caltype = 0
     th_classes = ['thclass']
     table_classes = ['tableclass']
+    header = "h3"
 
     def setUp(self):
         self.classes = Mock()
@@ -437,7 +443,8 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
                               th_classes=self.th_classes,
                               table_classes=self.table_classes,
                               caltype=self.caltype,
-                              backwards=self.backwards)
+                              backwards=self.backwards,
+                              header=self.header)
 
         # Sanity call check
         for item in result:
@@ -456,7 +463,8 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
         calls = []
         for month, year in iterator(self.starting_date, self.months - 1):
             c = call(month, year, self.classes, self.links, nomonth,
-                     self.th_classes, self.table_classes, self.caltype)
+                     self.th_classes, self.table_classes, self.caltype,
+                     self.header)
             calls.append(c)
         self.assertEqual(len(month_mock.call_args_list), len(calls))
         self.assertListEqual(month_mock.call_args_list, calls)
@@ -478,6 +486,7 @@ class BlackBoxHtmlCalendarTestCase(unittest.TestCase):
     caltype = 0
     th_classes = ['thclass']
     table_classes = ['tableclass']
+    header = "h3"
 
     def setUp(self):
         self.classes = (lambda x: ["my_class"],)
@@ -493,7 +502,8 @@ class BlackBoxHtmlCalendarTestCase(unittest.TestCase):
                                      th_classes=self.th_classes,
                                      table_classes=self.table_classes,
                                      caltype=self.caltype,
-                                     backwards=self.backwards)
+                                     backwards=self.backwards,
+                                     header=self.header)
         self.calendar = "\n".join(self.calendar)
 
     def test_black_box(self):
@@ -502,7 +512,7 @@ class BlackBoxHtmlCalendarTestCase(unittest.TestCase):
         parser.feed(self.calendar)
         month_counter = 0
         for item in parser.result:
-            if item[0] == 'starttag' and item[1] == 'h2':
+            if item[0] == 'starttag' and item[1] == self.header:
                 month_counter += 1
         self.assertEqual(month_counter, self.months)
 

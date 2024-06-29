@@ -6,9 +6,14 @@
   and formating classes
 """
 
-__version__ = "0.0.8"
+__version__ = "0.0.10"
 
 import calendar
+import locale as lc
+
+
+WEEKDAYS0 = [""] * 7
+WEEKDAYS1 = [""] * 7
 
 
 def nolist(date):
@@ -19,14 +24,18 @@ def nostr(date):
     return ""
 
 
+def update_weekdays():
+    global WEEKDAYS0, WEEKDAYS1
+    WEEKDAYS0 = list(calendar.day_abbr)
+    WEEKDAYS1 = [WEEKDAYS0[6]] + list(WEEKDAYS0[0:6])
+
+
 def no_month_factory(no_month_class):
     def no_month(date):
         return [no_month_class]
     return no_month
 
 
-WEEKDAYS0 = list(calendar.day_abbr)
-WEEKDAYS1 = [WEEKDAYS0[6]] + list(WEEKDAYS0[0:6])
 EMPTY_ROW = "<tr>" + 7 * "<td>&nbsp;</td>" + "</tr>"
 
 
@@ -57,10 +66,10 @@ def html_week_days(caltype):
 
 
 def htmlmonth(month, year, classes=nolist, links=nostr, nomonth=nolist,
-              th_classes=[], table_classes=[], caltype=0):
+              th_classes=[], table_classes=[], caltype=0, header="h3"):
     result = []
     week_count = 0
-    result.append(f"<h2>{calendar.month_name[month]}</h2>")
+    result.append(f"<{header}>{calendar.month_name[month]}</{header}>")
     if table_classes:
         cls = ' '.join(table_classes)
         result.append(f'<table class="{cls}">')
@@ -118,7 +127,9 @@ def htmlcalendar(starting_date,
                  th_classes=[],
                  table_classes=[],
                  caltype=0,
-                 backwards=True):
+                 backwards=True,
+                 header="h3",
+                 locale=lc.getdefaultlocale()):
     """
     Main function that takes a starting date and returns a list of
     tables containing months calendars in tables.
@@ -156,8 +167,11 @@ def htmlcalendar(starting_date,
 
     iterator = backwards_iterator if backwards else forward_iterator
 
+    lc.setlocale(lc.LC_ALL, locale)
+    update_weekdays()
+
     result = []
     for month, year in iterator(starting_date, months - 1):
         result.append(htmlmonth(month, year, classes, links, nomonth,
-                      th_classes, table_classes, caltype))
-    return reversed(result)
+                      th_classes, table_classes, caltype, header))
+    return reversed(result) if backwards else result
