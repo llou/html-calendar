@@ -161,6 +161,10 @@ def htmlcalendar(starting_date,
         If you want weeks starting on sunday 1 else 0
     backwards: bool
         If you want to generate the calendars to the past True else False
+    header: string
+        Set the html header level for the calendar month name
+    locale: string
+        Set the locale name used for naming month and week days names
     """
 
     nomonth = no_month_factory(no_month_class)
