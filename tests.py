@@ -10,11 +10,14 @@ from htmlcalendar import (htmlcalendar,
                           forward_iterator,
                           backwards_iterator,
                           nolist,
-                          nostr)
+                          nostr,
+                          noattrs,
+                          )
 import htmlcalendar as hc
 
 
-VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2", "h3", "h4"]
+VALID_HTML_TAGS = ["table", "th", "tr", "td", "a", "span", "h1", "h2", "h3",
+                   "h4"]
 
 
 def is_link(attrs):
@@ -77,6 +80,9 @@ class DayTestCase(unittest.TestCase):
     day = date(2023, 5, 8)
     parser_class = CalParser
     url = "https://nowhere"
+    key = "onclick"
+    value = "dial(home)"
+    safe = False
 
     def setUp(self):
         self.parser = self.parser_class()
@@ -88,18 +94,25 @@ class DayTestCase(unittest.TestCase):
         for cls in classes:
             self.assertIn(cls, attr_classes)
 
+    def assertAttributeInTag(self, attrs, key, value):
+        attrs = dict(attrs)
+        self.assertIn(self.key, attrs)
+        self.assertEqual(attrs[self.key], self.value)
+
     def assertLinksTo(self, attrs, url):
         attrs = dict(attrs)
         self.assertIn("href", attrs)
         self.assertEqual(attrs["href"], url)
 
-    def parse_day(self, date, class_callback, link_callback):
-        html_day = htmlday(self.day, class_callback, link_callback)
+    def parse_day(self, date, class_callback, link_callback, attrs_callback,
+                  safe):
+        html_day = htmlday(self.day, class_callback, link_callback,
+                           attrs_callback, safe)
         self.parser.feed(html_day)
         return self.parser.result
 
     def test_empty_day(self):
-        feed = self.parse_day(self.day, nolist, nostr)
+        feed = self.parse_day(self.day, nolist, nostr, noattrs, False)
         item = feed[0]
         self.assertEqual(item[0], "starttag")
         self.assertEqual(item[1], "td")
@@ -114,7 +127,7 @@ class DayTestCase(unittest.TestCase):
     def test_class(self):
         def callback(x):
             return ["classy", "beautiful"]
-        feed = self.parse_day(self.day, callback, nostr)
+        feed = self.parse_day(self.day, callback, nostr, noattrs, False)
         item = feed[0]
         self.assertEqual(item[0], "starttag")
         self.assertEqual(item[1], "td")
@@ -126,10 +139,25 @@ class DayTestCase(unittest.TestCase):
         self.assertEqual(item[0], "endtag")
         self.assertEqual(item[1], "td")
 
+    def test_attrs(self):
+        def callback(x):
+            return {self.key: self.value}
+        feed = self.parse_day(self.day, nolist, nostr, callback, False)
+        item = feed[0]
+        self.assertEqual(item[0], "starttag")
+        self.assertEqual(item[1], "td")
+        self.assertAttributeInTag(item[2], self.key, self.value)
+        item = feed[1]
+        self.assertEqual(item[0], "data")
+        self.assertEqual(item[1], str(self.day.day))
+        item = feed[2]
+        self.assertEqual(item[0], "endtag")
+        self.assertEqual(item[1], "td")
+
     def test_link_day(self):
         def callback(x):
             return self.url
-        feed = self.parse_day(self.day, nolist, callback)
+        feed = self.parse_day(self.day, nolist, callback, noattrs, False)
         item = feed[0]
         self.assertEqual(item[0], "starttag")
         self.assertEqual(item[1], "td")
@@ -173,7 +201,8 @@ class MonthTestCase(unittest.TestCase):
                               th_classes=self.th_classes,
                               table_classes=self.table_classes,
                               nomonth=lambda x: self.no_month_classes,
-                              caltype=self.caltype)
+                              caltype=self.caltype,
+                              locale=None, safe=True)
         self.parser = self.parser_class()
         self.parser.feed(self.html)
         self.data = self.parser.result
@@ -424,10 +453,13 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
     th_classes = ['thclass']
     table_classes = ['tableclass']
     header = "h3"
+    locale = None
+    safe = False
 
     def setUp(self):
         self.classes = Mock()
         self.links = Mock()
+        self.attrs = Mock()
         self.nomonth = Mock()
         self.th_classes = Mock()
         self.table_classes = Mock()
@@ -439,12 +471,15 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
                               months=self.months,
                               classes=self.classes,
                               links=self.links,
+                              attrs=self.attrs,
                               no_month_class=self.nomonth,
                               th_classes=self.th_classes,
                               table_classes=self.table_classes,
                               caltype=self.caltype,
                               backwards=self.backwards,
-                              header=self.header)
+                              header=self.header,
+                              locale=self.locale,
+                              safe=self.safe)
 
         # Sanity call check
         for item in result:
@@ -462,9 +497,18 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
         iterator = backwards_iterator if self.backwards else forward_iterator
         calls = []
         for month, year in iterator(self.starting_date, self.months - 1):
-            c = call(month, year, self.classes, self.links, nomonth,
-                     self.th_classes, self.table_classes, self.caltype,
-                     self.header)
+            c = call(month,
+                     year,
+                     classes=self.classes,
+                     links=self.links,
+                     attrs=self.attrs,
+                     nomonth=nomonth,
+                     th_classes=self.th_classes,
+                     table_classes=self.table_classes,
+                     caltype=self.caltype,
+                     header=self.header,
+                     locale=self.locale,
+                     safe=self.safe)
             calls.append(c)
         self.assertEqual(len(month_mock.call_args_list), len(calls))
         self.assertListEqual(month_mock.call_args_list, calls)
@@ -487,10 +531,13 @@ class BlackBoxHtmlCalendarTestCase(unittest.TestCase):
     th_classes = ['thclass']
     table_classes = ['tableclass']
     header = "h3"
+    locale = None
+    safe = True
 
     def setUp(self):
         self.classes = (lambda x: ["my_class"],)
         self.links = (lambda x: "https://nowhere",)
+        self.attrs = (lambda x: {"onclick": "testcall()"})
         self.nomonth = "no_month"
         self.th_classes = self.th_classes
         self.table_classes = self.table_classes
@@ -503,7 +550,9 @@ class BlackBoxHtmlCalendarTestCase(unittest.TestCase):
                                      table_classes=self.table_classes,
                                      caltype=self.caltype,
                                      backwards=self.backwards,
-                                     header=self.header)
+                                     header=self.header,
+                                     locale=self.locale,
+                                     safe=self.safe)
         self.calendar = "\n".join(self.calendar)
 
     def test_black_box(self):

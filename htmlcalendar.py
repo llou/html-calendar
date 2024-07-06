@@ -10,6 +10,7 @@ __version__ = "0.0.10"
 
 import calendar
 import locale as lc
+from html import escape
 
 
 WEEKDAYS0 = [""] * 7
@@ -22,6 +23,10 @@ def nolist(date):
 
 def nostr(date):
     return ""
+
+
+def noattrs(date):
+    return {}
 
 
 def update_weekdays():
@@ -39,17 +44,29 @@ def no_month_factory(no_month_class):
 EMPTY_ROW = "<tr>" + 7 * "<td>&nbsp;</td>" + "</tr>"
 
 
-def htmlday(date, classes, links):
+def htmlday(date, classes, links, attrs, safe):
     result = []
-    cs = classes(date)
     ls = links(date)
+    atdict = attrs(date)
+    cs = classes(date)
     if cs:
-        result.append(f'<td class="{" ".join(cs)}">')
+        atdict['class'] = " ".join([c for c in cs])
+    if atdict:
+        if safe:
+            ats = " ".join([f'{k}="{v}"' for k, v in atdict.items()])
+        else:
+            ats = [f'{escape(k)}="{escape(v)}"' for k, v in atdict.items()]
+            ats = " ".join(ats)
+        result.append(f"<td {ats}>")
     else:
         result.append("<td>")
     if ls:
-        result.append(f'<a href="{ls}">')
-    result.append(str(date.day))
+        if safe:
+            result.append(f'<a href="{ls}">')
+        else:
+            result.append(f'<a href="{escape(ls)}">')
+
+    result.append(escape(str(date.day)))
     if ls:
         result.append("</a>")
     result.append("</td>")
@@ -60,18 +77,21 @@ def html_week_days(caltype):
     result = ["<tr>"]
     wds = WEEKDAYS1 if caltype else WEEKDAYS0
     for wd in wds:
-        result.append(f"<th>{wd}</th>")
+        result.append(f"<th>{escape(wd)}</th>")
     result.append("</tr>\n")
     return "".join(result)
 
 
-def htmlmonth(month, year, classes=nolist, links=nostr, nomonth=nolist,
-              th_classes=[], table_classes=[], caltype=0, header="h3"):
+def htmlmonth(month, year, classes=nolist, links=nostr, attrs=noattrs,
+              nomonth=nolist, th_classes=[], table_classes=[], caltype=0,
+              header="h3", locale=None, safe=False):
     result = []
     week_count = 0
-    result.append(f"<{header}>{calendar.month_name[month]}</{header}>")
+    header = escape(header)
+    month_name = escape(calendar.month_name[month])
+    result.append(f"<{header}>{month_name}</{header}>")
     if table_classes:
-        cls = ' '.join(table_classes)
+        cls = ' '.join([escape(c) for c in table_classes])
         result.append(f'<table class="{cls}">')
     else:
         result.append("<table>")
@@ -82,9 +102,9 @@ def htmlmonth(month, year, classes=nolist, links=nostr, nomonth=nolist,
             week_count += 1
             result.append("<tr>\n")
         if date.month != month:
-            result.append(htmlday(date, nomonth, nostr))
+            result.append(htmlday(date, nomonth, nostr, attrs, safe))
         else:
-            result.append(htmlday(date, classes, links))
+            result.append(htmlday(date, classes, links, attrs, safe))
         if date.weekday() == 6:
             result.append("</tr>\n")
     if week_count == 5:
@@ -123,13 +143,17 @@ def htmlcalendar(starting_date,
                  months=3,
                  classes=nolist,
                  links=nostr,
+                 attrs=noattrs,
                  no_month_class='nomonth',
                  th_classes=[],
                  table_classes=[],
                  caltype=0,
                  backwards=True,
                  header="h3",
-                 locale=None):
+                 locale=None,
+                 safe=False,
+                 ):
+
     """
     Main function that takes a starting date and returns a list of
     tables containing months calendars in tables.
@@ -165,6 +189,8 @@ def htmlcalendar(starting_date,
         Set the html header level for the calendar month name
     locale: string
         Set the locale name used for naming month and week days names
+    safe: bool
+        If false escapes all variables that go into the templates
     """
 
     nomonth = no_month_factory(no_month_class)
@@ -177,6 +203,16 @@ def htmlcalendar(starting_date,
 
     result = []
     for month, year in iterator(starting_date, months - 1):
-        result.append(htmlmonth(month, year, classes, links, nomonth,
-                      th_classes, table_classes, caltype, header))
+        result.append(htmlmonth(month,
+                                year,
+                                classes=classes,
+                                links=links,
+                                attrs=attrs,
+                                nomonth=nomonth,
+                                th_classes=th_classes,
+                                table_classes=table_classes,
+                                caltype=caltype,
+                                header=header,
+                                locale=locale,
+                                safe=safe))
     return reversed(result) if backwards else result
