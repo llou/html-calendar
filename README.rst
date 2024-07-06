@@ -21,6 +21,11 @@ You can also format the days that are not in the month but appear in the table
 with the option ``no_month_class``. And the classes for formatting the headers
 and the table using the options ``th_classes`` and ``table_classes``.
 
+Attributes dictionary is added for allowing further customization of the
+calendar with the keyword ``attrs``. Then, for ensuring safety on the building
+of the calendar the ``safe`` keyword is added to escape all the variables that
+are rendered.
+
 It also supports North American calendar with the option ``caltype`` putting
 its value to 1.
 
@@ -39,6 +44,9 @@ its value to 1.
   def css_class(date):
 	  if date.weekday() == 5:
 		  return ["party"]
+
+  def attrs(date):
+      return {"onclick": f"whatever({date.year}, {date.month}, {date.day})"}
 
   @app.route("/")
   def party_calendar():

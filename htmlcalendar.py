@@ -175,7 +175,7 @@ def htmlcalendar(starting_date,
         a fully qualified URL that will be linked to the date number. If
         the function returns none there is no link generated.
     attrs:
-        A dict of attributes to be inserted in the <td> tag.
+        A dict of attributes to be inserted in the <td> tags.
     no_month_class: string
         The name of a css class to be put in the cells of the table that
         don't belongo to the month in course.
