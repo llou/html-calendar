@@ -50,7 +50,11 @@ def htmlday(date, classes, links, attrs, safe):
     atdict = attrs(date)
     cs = classes(date)
     if cs:
-        atdict['class'] = " ".join([c for c in cs])
+        if safe:
+            atdict['class'] = " ".join([c for c in cs])
+        else:
+            atdict['class'] = " ".join([escape(c) for c in cs])
+
     if atdict:
         if safe:
             ats = " ".join([f'{k}="{v}"' for k, v in atdict.items()])
