@@ -179,7 +179,6 @@ class DayTestCase(unittest.TestCase):
 class MonthTestCase(unittest.TestCase):
     year = 2012
     month = 5
-    no_month_classes = ["nomonth"]
     th_classes = ["header"]
     table_classes = ["table"]
     caltype = 0
@@ -200,7 +199,6 @@ class MonthTestCase(unittest.TestCase):
                               links=self.linkFunction,
                               th_classes=self.th_classes,
                               table_classes=self.table_classes,
-                              nomonth=lambda x: self.no_month_classes,
                               caltype=self.caltype,
                               locale=None, safe=True)
         self.parser = self.parser_class()
@@ -265,14 +263,6 @@ class MonthTestCase(unittest.TestCase):
             if in_month:
                 yield x
 
-    def iter_no_month_days(self):
-        in_month = False
-        for x in self.cell_iterator():
-            if x[0] == '1':
-                in_month = not in_month
-            if not in_month:
-                yield x
-
     def iter_rows(self):
         row = None
         td = False
@@ -312,16 +302,6 @@ class MonthTestCase(unittest.TestCase):
         for name1, name2 in zip(names, week_days):
             self.assertEqual(name1, name2)
 
-    def test_table_days(self):
-        day_numbers = [x[0] for x in self.cell_iterator()]
-        dates = [x for x in self.date_iterator]
-        for day, date_ in zip(day_numbers, dates):
-            self.assertEqual(int(day), date_.day)
-
-    def test_no_month_days(self):
-        for d, attrs, href in self.iter_no_month_days():
-            self.assertClasses(attrs, self.no_month_classes)
-
     def test_month_days(self):
         for day, attrs, href in self.iter_month_days():
             date = self.day_to_date(day)
@@ -344,7 +324,6 @@ class MonthTestCase(unittest.TestCase):
 class MonthTestCase2(MonthTestCase):
     year = 2023
     month = 9
-    no_month_classes = ["themonth"]
     th_classes = ["title"]
     table_classes = ["tabla"]
     caltype = 1
@@ -360,7 +339,6 @@ class MonthTestCase2(MonthTestCase):
 class MonthTestCase3(MonthTestCase):
     year = 2035
     month = 12
-    no_month_classes = ["themonth"]
     th_classes = ["title"]
     table_classes = ["tabla"]
     caltype = 1
@@ -460,19 +438,16 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
         self.classes = Mock()
         self.links = Mock()
         self.attrs = Mock()
-        self.nomonth = Mock()
         self.th_classes = Mock()
         self.table_classes = Mock()
 
     @patch('htmlcalendar.htmlmonth')
-    @patch('htmlcalendar.no_month_factory')
-    def test_months(self, no_month_factory, month_mock):
+    def test_months(self, month_mock):
         result = htmlcalendar(self.starting_date,
                               months=self.months,
                               classes=self.classes,
                               links=self.links,
                               attrs=self.attrs,
-                              no_month_class=self.nomonth,
                               th_classes=self.th_classes,
                               table_classes=self.table_classes,
                               caltype=self.caltype,
@@ -484,10 +459,6 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
         # Sanity call check
         for item in result:
             html_sanity_checker(item)
-
-        # Test callback
-        no_month_factory.assert_called_once_with(self.nomonth)
-        nomonth = no_month_factory()
 
         # Basic htmlmonths calls
         self.assertTrue(month_mock.called)
@@ -502,7 +473,6 @@ class WhiteBoxHtmlCalendar1TestCase(unittest.TestCase):
                      classes=self.classes,
                      links=self.links,
                      attrs=self.attrs,
-                     nomonth=nomonth,
                      th_classes=self.th_classes,
                      table_classes=self.table_classes,
                      caltype=self.caltype,
@@ -538,14 +508,12 @@ class BlackBoxHtmlCalendarTestCase(unittest.TestCase):
         self.classes = (lambda x: ["my_class"],)
         self.links = (lambda x: "https://nowhere",)
         self.attrs = (lambda x: {"onclick": "testcall()"})
-        self.nomonth = "no_month"
         self.th_classes = self.th_classes
         self.table_classes = self.table_classes
         self.calendar = htmlcalendar(self.starting_date,
                                      months=self.months,
                                      classes=self.classes[0],
                                      links=self.links[0],
-                                     no_month_class=self.nomonth,
                                      th_classes=self.th_classes,
                                      table_classes=self.table_classes,
                                      caltype=self.caltype,

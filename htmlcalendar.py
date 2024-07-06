@@ -35,12 +35,6 @@ def update_weekdays():
     WEEKDAYS1 = [WEEKDAYS0[6]] + list(WEEKDAYS0[0:6])
 
 
-def no_month_factory(no_month_class):
-    def no_month(date):
-        return [no_month_class]
-    return no_month
-
-
 EMPTY_ROW = "<tr>" + 7 * "<td>&nbsp;</td>" + "</tr>"
 
 
@@ -87,8 +81,8 @@ def html_week_days(caltype):
 
 
 def htmlmonth(month, year, classes=nolist, links=nostr, attrs=noattrs,
-              nomonth=nolist, th_classes=[], table_classes=[], caltype=0,
-              header="h3", locale=None, safe=False):
+              th_classes=[], table_classes=[], caltype=0, header="h3",
+              locale=None, safe=False):
     result = []
     week_count = 0
     header = escape(header)
@@ -106,7 +100,7 @@ def htmlmonth(month, year, classes=nolist, links=nostr, attrs=noattrs,
             week_count += 1
             result.append("<tr>\n")
         if date.month != month:
-            result.append(htmlday(date, nomonth, nostr, attrs, safe))
+            result.append("<td></td>")
         else:
             result.append(htmlday(date, classes, links, attrs, safe))
         if date.weekday() == 6:
@@ -199,8 +193,6 @@ def htmlcalendar(starting_date,
         If false escapes all variables that go into the templates
     """
 
-    nomonth = no_month_factory(no_month_class)
-
     iterator = backwards_iterator if backwards else forward_iterator
 
     if locale is not None:
@@ -214,7 +206,6 @@ def htmlcalendar(starting_date,
                                 classes=classes,
                                 links=links,
                                 attrs=attrs,
-                                nomonth=nomonth,
                                 th_classes=th_classes,
                                 table_classes=table_classes,
                                 caltype=caltype,
