@@ -23,8 +23,8 @@ and the table using the options ``th_classes`` and ``table_classes``.
 
 Attributes dictionary is added for allowing further customization of the
 calendar with the keyword ``attrs``. Then, for ensuring safety on the building
-of the calendar the ``safe`` keyword is added to escape all the variables that
-are rendered.
+of the calendar the ``safe`` option is added to escape all the variables that
+are rendered building the calendar when it is disabled.
 
 It also supports North American calendar with the option ``caltype`` putting
 its value to 1.
