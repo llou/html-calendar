@@ -129,7 +129,7 @@ def htmlcalendar(starting_date,
                  caltype=0,
                  backwards=True,
                  header="h3",
-                 locale=lc.getdefaultlocale()):
+                 locale=None):
     """
     Main function that takes a starting date and returns a list of
     tables containing months calendars in tables.
@@ -171,8 +171,9 @@ def htmlcalendar(starting_date,
 
     iterator = backwards_iterator if backwards else forward_iterator
 
-    lc.setlocale(lc.LC_ALL, locale)
-    update_weekdays()
+    if locale is not None:
+        lc.setlocale(lc.LC_ALL, locale)
+        update_weekdays()
 
     result = []
     for month, year in iterator(starting_date, months - 1):
