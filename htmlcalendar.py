@@ -6,7 +6,7 @@
   and formating classes
 """
 
-__version__ = "0.0.14"
+__version__ = "0.0.15"
 
 import calendar
 import locale as lc
@@ -173,9 +173,6 @@ def htmlcalendar(starting_date,
         the function returns none there is no link generated.
     attrs:
         A dict of attributes to be inserted in the <td> tags.
-    no_month_class: string
-        The name of a css class to be put in the cells of the table that
-        don't belongo to the month in course.
     th_classes: list
         A list of classes to be put in each one of the weekdays labels.
     table_classes: list

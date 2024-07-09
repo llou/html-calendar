@@ -17,9 +17,8 @@ Linking dates to URLs is also provided by a callback function passed as the
 ``links`` parameter that takes the date and returns a fully qualified HTML link
 if required or ``None`` if not.
 
-You can also format the days that are not in the month but appear in the table
-with the option ``no_month_class``. And the classes for formatting the headers
-and the table using the options ``th_classes`` and ``table_classes``.
+For formatting the headers and the table you can use css classes in a list with
+the options ``th_classes`` and ``table_classes``.
 
 Attributes dictionary is added for allowing further customization of the
 calendar with the keyword ``attrs``. Then, for ensuring safety on the building
