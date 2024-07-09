@@ -32,6 +32,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.UPLOAD_TOKEN }}
         with:
+          tag_name: "trying"
+          release_name: "trying"
           draft: true
           prerelease: true
 
