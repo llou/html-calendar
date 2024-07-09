@@ -1,9 +1,9 @@
 name: Build and Release Python Package
 
-on: push
-  #  push:
-  #  tags:
-  #    - 'v*.*.*'
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/release-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
