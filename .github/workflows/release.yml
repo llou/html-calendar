@@ -1,6 +1,5 @@
 name: Build and Release Python Package
 
-
 on:
   push:
     tags:
