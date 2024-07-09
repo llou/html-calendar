@@ -6,7 +6,7 @@
   and formating classes
 """
 
-__version__ = "0.0.12"
+__version__ = "0.0.14"
 
 import calendar
 import locale as lc
@@ -142,7 +142,6 @@ def htmlcalendar(starting_date,
                  classes=nolist,
                  links=nostr,
                  attrs=noattrs,
-                 no_month_class='nomonth',
                  th_classes=[],
                  table_classes=[],
                  caltype=0,
