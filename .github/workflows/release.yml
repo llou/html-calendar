@@ -28,8 +28,9 @@ jobs:
 
       - name: Create Release
         uses: actions/create-release@v1
-        with:
+        env:
           token: ${{ secrets.UPLOAD_TOKEN }}
+        with:
           draft: true
           prerelease: true
 
