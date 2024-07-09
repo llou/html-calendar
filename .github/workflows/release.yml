@@ -46,3 +46,4 @@ jobs:
           asset_name: my_project-${{ github.ref }}.tar.gz
           asset_content_type: application/gzip
 
+
