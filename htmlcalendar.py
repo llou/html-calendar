@@ -6,7 +6,7 @@
   and formating classes
 """
 
-__version__ = "0.0.17"
+__version__ = "0.0.18"
 
 import calendar
 import locale as lc
