@@ -1,6 +1,6 @@
 name: Build and Release Python Package
 
-on: publish
+on: push
   #  push:
   #  tags:
   #    - 'v*.*.*'
