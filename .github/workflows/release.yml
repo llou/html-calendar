@@ -1,9 +1,9 @@
 name: Build and Release Python Package
 
-on: 
-  push:
-    tags:
-      - '*'
+on: push
+  #  push:
+  #  tags:
+  #    - '*'
 
 jobs:
   build:
