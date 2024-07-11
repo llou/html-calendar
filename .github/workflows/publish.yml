@@ -1,9 +1,9 @@
-name: Upload Python Package
+name: Build Package and Upload Python PyPi
 
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - '*.*.*'
 
 jobs:
   build:
